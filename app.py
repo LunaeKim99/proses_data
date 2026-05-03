@@ -56,8 +56,8 @@ class App(tk.Tk):
         main.columnconfigure(0, minsize=300)
         main.columnconfigure(1, weight=1)
         main.rowconfigure(0, weight=1)
-        self._build_left_panel(tk.Frame(main, bg="#FFFFFF", relief="flat", bd=0))
-        self._build_right_panel(tk.Frame(main, bg="#FFFFFF", relief="flat", bd=0))
+        self._build_left_panel(tk.Frame(main, bg="#FFFFFF"))
+        self._build_right_panel(tk.Frame(main, bg="#FFFFFF"))
 
     def _build_left_panel(self, panel):
         panel.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
@@ -134,7 +134,7 @@ class App(tk.Tk):
         notebook.pack(fill='both', expand=True, padx=(6, 0))
         
         # Tab 1: Log Proses
-        log_frame = ttk.Frame(notebook)
+        log_frame = tk.Frame(notebook, bg="#FFFFFF")
         notebook.add(log_frame, text="  Log Proses  ")
         self._build_log_area(log_frame)
         
@@ -150,8 +150,6 @@ class App(tk.Tk):
 
     # CHANGE 2: Extract log area building
     def _build_log_area(self, parent):
-        parent.configure(bg="#FFFFFF")
-        
         header_frame = tk.Frame(parent, bg="#FFFFFF")
         header_frame.pack(fill="x", padx=20, pady=(15, 10))
         
