@@ -38,7 +38,6 @@ class App(tk.Tk):
         self.minsize(750, 550)
         self.configure(bg="#ECF0F1")
         self.option_add("*Font", ("Segoe UI", 10))
-        # BUG FIX: Add notebook tab style
         style = ttk.Style()
         style.configure("TNotebook.Tab", padding=[12, 8])
 
@@ -53,7 +52,6 @@ class App(tk.Tk):
                            font=("Segoe UI", 10), bg="#34495E", fg="#BDC3C7")
         subtitle.pack()
 
-    # BUG FIX: Corrected _build_main_area - panels now gridded before passing to builders
     def _build_main_area(self):
         main = tk.Frame(self, bg="#ECF0F1")
         main.pack(fill="both", expand=True, padx=12, pady=12)
@@ -61,17 +59,14 @@ class App(tk.Tk):
         main.columnconfigure(1, weight=1)
         main.rowconfigure(0, weight=1)
 
-        # Left panel - create frame and attach to grid BEFORE passing to builder
         left = tk.Frame(main, bg="#FFFFFF")
-        left.grid(row=0, column=0, sticky="nsew", padx=(0, 6))  # BUG FIX
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
         self._build_left_panel(left)
 
-        # Right panel - MUST also be attached to grid
-        right = tk.Frame(main, bg="#FFFFFF", relief="flat")  # BUG FIX
-        right.grid(row=0, column=1, sticky="nsew")  # BUG FIX
+        right = tk.Frame(main, bg="#FFFFFF", relief="flat")
+        right.grid(row=0, column=1, sticky="nsew")
         self._build_right_panel(right)
 
-    # BUG FIX: Removed internal .grid() call - panel is now positioned by _build_main_area()
     def _build_left_panel(self, panel):
         panel.configure(bg="#FFFFFF")
         
@@ -140,23 +135,22 @@ class App(tk.Tk):
         self.btn_clear.pack(fill="x")
         add_hover_effect(self.btn_clear, "#95A5A6", "#7F8C8D")
 
-    # BUG FIX: Removed padx=(6, 0) from notebook.pack()
     def _build_right_panel(self, parent):
         notebook = ttk.Notebook(parent)
-        notebook.pack(fill='both', expand=True)  # BUG FIX
+        notebook.pack(fill='both', expand=True)
         
         # Tab 1: Log Proses
         log_frame = tk.Frame(notebook, bg="#FFFFFF")
-        notebook.add(log_frame, text="  📋 Log Proses  ")  # BUG FIX: added emoji
+        notebook.add(log_frame, text="  📋 Log Proses  ")
         self._build_log_area(log_frame)
         
-        # Tab 2: Tabel Ranking
+        # Tab 2: Tabel Data (CSV SWITCH FIX: renamed from Tabel Ranking)
         table_frame = self._build_table_tab(notebook)
-        notebook.add(table_frame, text="  📊 Tabel Ranking  ")  # BUG FIX: added emoji
+        notebook.add(table_frame, text="  📊 Tabel Data  ")  # CSV SWITCH FIX
         
         # Tab 3: Preview Chart
         chart_frame_tab = self._build_chart_tab(notebook)
-        notebook.add(chart_frame_tab, text="  🖼 Preview Chart  ")  # BUG FIX: added emoji
+        notebook.add(chart_frame_tab, text="  🖼 Preview Chart  ")
         
         self.notebook = notebook
 
@@ -180,56 +174,111 @@ class App(tk.Tk):
         self.log_widget.tag_configure("error", foreground="#E57373")
         self.log_widget.tag_configure("header", foreground="#CE93D8", font=("Consolas", 10, "bold"))
 
+    # CSV SWITCH FIX: Complete rewrite to support both CSV files
     def _build_table_tab(self, parent):
-        frame = ttk.Frame(parent)
+        frame = tk.Frame(parent, bg="#FFFFFF")
         
-        columns = ("Provinsi", "Siswa", "Sekolah", "Rasio_Putus_Sekolah",
-                   "Persen_Kelas_Rusak", "Rasio_Siswa_Guru", "Rank_Siswa",
-                   "Rank_Putus_Sekolah", "Rank_Kelas_Rusak")
+        # Top bar: dropdown selector
+        top_bar = tk.Frame(frame, bg="#F0F0F0", pady=8)
+        top_bar.pack(fill="x", padx=0, pady=0)
         
-        tree = ttk.Treeview(frame, columns=columns, show="headings", height=20)
+        tk.Label(top_bar, text="  Tampilkan Data:", 
+                 font=("Segoe UI", 10, "bold"),
+                 bg="#F0F0F0", fg="#2C3E50").pack(side="left", padx=(12, 6))
         
-        col_widths = {
-            "Provinsi": 160, "Siswa": 90, "Sekolah": 70,
-            "Rasio_Putus_Sekolah": 120, "Persen_Kelas_Rusak": 120,
-            "Rasio_Siswa_Guru": 110, "Rank_Siswa": 80,
-            "Rank_Putus_Sekolah": 110, "Rank_Kelas_Rusak": 110
-        }
-        for col in columns:
-            tree.heading(col, text=col.replace("_", " "))
-            tree.column(col, width=col_widths.get(col, 100), anchor="center")
+        self.table_choice = tk.StringVar(value="ranking_provinsi.csv")
+        dropdown = ttk.Combobox(
+            top_bar,
+            textvariable=self.table_choice,
+            values=["ranking_provinsi.csv", "feature_engineered.csv"],
+            state="readonly",
+            width=28,
+            font=("Segoe UI", 10)
+        )
+        dropdown.pack(side="left", padx=(0, 8))
+        dropdown.bind("<<ComboboxSelected>>", lambda e: self._load_table_data())
         
-        tree.tag_configure("oddrow", background="#F9F9F9")
-        tree.tag_configure("evenrow", background="#FFFFFF")
+        ttk.Button(top_bar, text="🔄 Refresh", 
+                   command=self._load_table_data).pack(side="left", padx=4)
         
-        vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
-        hsb = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
-        tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+        # Row count label
+        self.table_info_label = tk.Label(
+            top_bar, text="", 
+            font=("Segoe UI", 9, "italic"),
+            bg="#F0F0F0", fg="#7F8C8D"
+        )
+        self.table_info_label.pack(side="right", padx=12)
         
-        tree.grid(row=0, column=0, sticky="nsew")
+        # Separator
+        tk.Frame(frame, height=1, bg="#DCDCDC").pack(fill="x")
+        
+        # Treeview container
+        tree_container = tk.Frame(frame, bg="#FFFFFF")
+        tree_container.pack(fill="both", expand=True)
+        tree_container.grid_rowconfigure(0, weight=1)
+        tree_container.grid_columnconfigure(0, weight=1)
+        
+        # Treeview - columns set dynamically in _load_table_data()
+        self.ranking_tree = ttk.Treeview(tree_container, show="headings", height=20)
+        
+        vsb = ttk.Scrollbar(tree_container, orient="vertical", command=self.ranking_tree.yview)
+        hsb = ttk.Scrollbar(tree_container, orient="horizontal", command=self.ranking_tree.xview)
+        self.ranking_tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+        
+        self.ranking_tree.grid(row=0, column=0, sticky="nsew")
         vsb.grid(row=0, column=1, sticky="ns")
         hsb.grid(row=1, column=0, sticky="ew")
-        frame.grid_rowconfigure(0, weight=1)
-        frame.grid_columnconfigure(0, weight=1)
         
-        self.ranking_tree = tree
+        # Row color tags
+        self.ranking_tree.tag_configure("oddrow", background="#F4F6F7")
+        self.ranking_tree.tag_configure("evenrow", background="#FFFFFF")
+        
         return frame
 
+    # CSV SWITCH FIX: Dynamic loading for both CSV files
     def _load_table_data(self):
         import pandas as pd
-        path = os.path.join(self.output_path.get(), "ranking_provinsi.csv")
+        
+        # Determine which file to load based on dropdown selection
+        selected = self.table_choice.get()
+        path = os.path.join(self.output_path.get(), selected)
+        
         if not os.path.exists(path):
+            self.table_info_label.config(text=f"File tidak ditemukan: {selected}")
             return
+        
         df = pd.read_csv(path)
+        
+        # Dynamically set columns based on the loaded CSV
+        columns = list(df.columns)
+        self.ranking_tree.config(columns=columns)
+        
+        # Column display settings
+        for col in columns:
+            self.ranking_tree.heading(col, text=col.replace("_", " "))
+            # Auto-width: wider for text columns, narrower for numeric
+            if col in ("Provinsi",):
+                width = 160
+            elif any(kw in col for kw in ("Rusak", "Kelas", "Guru", "Sekolah", "Nama")):
+                width = 130
+            elif any(kw in col for kw in ("Rank", "Siswa", "Total")):
+                width = 90
+            else:
+                width = 110
+            self.ranking_tree.column(col, width=width, anchor="center", minwidth=60)
+        
+        # Clear existing rows and insert new data
         self.ranking_tree.delete(*self.ranking_tree.get_children())
+        
         for i, row in df.iterrows():
             tag = "oddrow" if i % 2 == 0 else "evenrow"
-            values = [row.get(col, "") for col in (
-                "Provinsi", "Siswa", "Sekolah", "Rasio_Putus_Sekolah",
-                "Persen_Kelas_Rusak", "Rasio_Siswa_Guru",
-                "Rank_Siswa", "Rank_Putus_Sekolah", "Rank_Kelas_Rusak"
-            )]
+            values = [row[col] for col in columns]
             self.ranking_tree.insert("", "end", values=values, tags=(tag,))
+        
+        # Update info label
+        self.table_info_label.config(
+            text=f"Menampilkan {len(df)} baris · {len(columns)} kolom"
+        )
 
     def _build_chart_tab(self, parent):
         frame = ttk.Frame(parent, padding=10)
