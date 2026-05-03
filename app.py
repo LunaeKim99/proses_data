@@ -182,7 +182,6 @@ class App(tk.Tk):
                 df.to_csv(f"{output_dir}/feature_engineered.csv", index=False)
                 self.after(0, lambda: log_message(self.log_widget, f"✅ Tersimpan: {output_dir}/feature_engineered.csv", "success"))
             if self.opt_csv_ranking.get():
-            if self.opt_csv_ranking.get():
                 self.after(0, lambda: log_message(self.log_widget, "💾 Menyimpan CSV: ranking_provinsi.csv", "info"))
                 ranking_cols = ['Provinsi', 'Siswa', 'Sekolah', 'Rasio_Putus_Sekolah', 'Rasio_Mengulang', 'Persen_Kelas_Rusak', 'Rasio_Siswa_Guru', 'Persen_Guru_S1_Plus']
                 ranking_df = df[ranking_cols].copy()
