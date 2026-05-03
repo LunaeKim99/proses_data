@@ -6,14 +6,14 @@ def create_section_label(parent, text: str) -> tk.Label:
                     bg="#FFFFFF", fg="#2C3E50", anchor="w")
     return label
 
-def create_flat_button(parent, text: str, bg: str, command) -> tk.Button:
+def create_flat_button(parent, text: str, bg: str, command, is_primary=False) -> tk.Button:
+    font_size = ("Segoe UI", 11, "bold") if is_primary else ("Segoe UI", 10)
     btn = tk.Button(parent, text=text, bg=bg, fg="white",
-                   font=("Segoe UI", 11, "bold") if "Jalankan" in text else ("Segoe UI", 10),
-                   relief="flat", cursor="hand2", borderwidth=0,
+                   font=font_size, relief="flat", cursor="hand2", borderwidth=0,
                    activebackground=bg, activeforeground="white",
                    command=command)
-    if "Jalankan" in text:
-        btn.config(height=2)
+    if is_primary:
+        btn.config(height=2, pady=8)
     return btn
 
 def add_hover_effect(button: tk.Button, normal_color: str, hover_color: str) -> None:
