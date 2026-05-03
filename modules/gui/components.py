@@ -1,19 +1,13 @@
 import tkinter as tk
 from datetime import datetime
 
-def create_section_label(parent, text: str) -> tk.Label:
-    label = tk.Label(parent, text=text, font=("Segoe UI", 10, "bold"),
-                    bg="#FFFFFF", fg="#2C3E50", anchor="w")
-    return label
-
-def create_flat_button(parent, text: str, bg: str, command, is_primary=False) -> tk.Button:
+def create_flat_button(parent, text: str, bg: str, command, is_primary=False):
     font_size = ("Segoe UI", 11, "bold") if is_primary else ("Segoe UI", 10)
-    btn = tk.Button(parent, text=text, bg=bg, fg="white",
+    height = 2 if is_primary else 1
+    btn = tk.Button(parent, text=text, bg=bg, fg="#FFFFFF",
                    font=font_size, relief="flat", cursor="hand2", borderwidth=0,
-                   activebackground=bg, activeforeground="white",
-                   command=command)
-    if is_primary:
-        btn.config(height=2, pady=8)
+                   activebackground=bg, activeforeground="#FFFFFF",
+                   command=command, height=height)
     return btn
 
 def add_hover_effect(button: tk.Button, normal_color: str, hover_color: str) -> None:

@@ -11,10 +11,63 @@ from modules.feature_engineer import engineer_features
 from modules.visualizer import generate_charts
 from modules.gui.components import log_message, create_flat_button, add_hover_effect
 
+# ── DARK THEME COLOR PALETTE ────────────────────────────
+COLORS = {
+    # Backgrounds
+    "bg_main": "#1A1A2E",      # deep dark navy — main window background
+    "bg_panel": "#16213E",      # slightly lighter — left/right panel background
+    "bg_card": "#0F3460",       # card/section background
+    "bg_input": "#1A1A2E",     # entry/combobox background
+    "bg_hover": "#1F4068",      # hover state for interactive elements
+    "bg_terminal": "#0D0D0D",   # log terminal background (near-black)
+
+    # Header & Status Bar
+    "bg_header": "#0F3460",     # header background
+    "bg_statusbar": "#0F3460",  # status bar background
+
+    # Borders & Separators
+    "border": "#2A2D3E",       # subtle border color
+    "separator": "#2A2D3E",    # separator line color
+
+    # Text
+    "text_primary": "#E0E0E0",  # main text
+    "text_secondary": "#A0AEC0", # muted/secondary text
+    "text_header": "#FFFFFF",    # header title text
+    "text_subtitle": "#8892A4", # subtitle text
+
+    # Accent Colors (buttons)
+    "accent_green": "#00B894",    # primary action button (run)
+    "accent_green_hover": "#00A381",
+    "accent_blue": "#0984E3",    # secondary button (open folder)
+    "accent_blue_hover": "#0773C5",
+    "accent_gray": "#2D3436",    # clear log button
+    "accent_gray_hover": "#3D4446",
+
+    # Treeview / Table
+    "tree_bg": "#16213E",        # treeview background
+    "tree_odd": "#1C2847",       # odd row
+    "tree_even": "#16213E",      # even row
+    "tree_selected": "#0984E3",   # selected row highlight
+    "tree_heading": "#0F3460",    # column heading background
+    "tree_fg": "#E0E0E0",       # treeview text
+
+    # Log terminal text colors
+    "log_info": "#4FC3F7",
+    "log_success": "#81C784",
+    "log_warning": "#FFD54F",
+    "log_error": "#E57373",
+    "log_header": "#CE93D8",
+
+    # Notebook tabs
+    "tab_active": "#0F3460",     # active tab background
+    "tab_inactive": "#1A1A2E",  # inactive tab background
+    "tab_text": "#E0E0E0",       # tab label text
+}
+
 hover_colors = {
-    "#27AE60": "#1E8449",
-    "#2980B9": "#1F618D",
-    "#E74C3C": "#C0392B",
+    COLORS["accent_green"]: COLORS["accent_green_hover"],
+    COLORS["accent_blue"]:  COLORS["accent_blue_hover"],
+    COLORS["accent_gray"]:  COLORS["accent_gray_hover"],
 }
 
 class App(tk.Tk):
@@ -36,43 +89,169 @@ class App(tk.Tk):
         self.title("Analisis Data Pendidikan Indonesia")
         self.geometry("950x700")
         self.minsize(750, 550)
-        self.configure(bg="#ECF0F1")
+        self.configure(bg=COLORS["bg_main"])  # DARK THEME
         self.option_add("*Font", ("Segoe UI", 10))
-        style = ttk.Style()
-        style.configure("TNotebook.Tab", padding=[12, 8])
+        self.option_add("*Background", COLORS["bg_main"])  # DARK THEME
+        self.option_add("*Foreground", COLORS["text_primary"])  # DARK THEME
+
+        # ttk Style for dark theme
+        style = ttk.Style(self)
+        style.theme_use("clam")
+
+        # Notebook tabs
+        style.configure("TNotebook",
+            background=COLORS["bg_main"],  # DARK THEME
+            borderwidth=0,
+            tabmargins=[2, 2, 2, 0]
+        )
+        style.configure("TNotebook.Tab",
+            background=COLORS["tab_inactive"],  # DARK THEME
+            foreground=COLORS["tab_text"],  # DARK THEME
+            padding=[12, 8],
+            font=("Segoe UI", 10)
+        )
+        style.map("TNotebook.Tab",
+            background=[("selected", COLORS["tab_active"]),  # DARK THEME
+                        ("active", COLORS["bg_hover"])],  # DARK THEME
+            foreground=[("selected", "#FFFFFF"),
+                        ("active", COLORS["text_primary"])]  # DARK THEME
+        )
+
+        # Progressbar
+        style.configure("green.Horizontal.TProgressbar",
+            troughcolor=COLORS["bg_card"],  # DARK THEME
+            background=COLORS["accent_green"],  # DARK THEME
+            darkcolor=COLORS["accent_green"],  # DARK THEME
+            lightcolor="#00D4A8",
+            bordercolor=COLORS["bg_card"],  # DARK THEME
+            thickness=14
+        )
+
+        # Treeview
+        style.configure("Treeview",
+            background=COLORS["tree_bg"],  # DARK THEME
+            foreground=COLORS["tree_fg"],  # DARK THEME
+            fieldbackground=COLORS["tree_bg"],  # DARK THEME
+            rowheight=26,
+            font=("Segoe UI", 10)
+        )
+        style.configure("Treeview.Heading",
+            background=COLORS["tree_heading"],  # DARK THEME
+            foreground=COLORS["text_primary"],  # DARK THEME
+            font=("Segoe UI", 10, "bold"),
+            relief="flat"
+        )
+        style.map("Treeview",
+            background=[("selected", COLORS["tree_selected"])],  # DARK THEME
+            foreground=[("selected", "#FFFFFF")]
+        )
+        style.map("Treeview.Heading",
+            background=[("active", COLORS["bg_hover"])]  # DARK THEME
+        )
+
+        # Scrollbar
+        style.configure("Vertical.TScrollbar",
+            background=COLORS["bg_card"],  # DARK THEME
+            troughcolor=COLORS["bg_panel"],  # DARK THEME
+            arrowcolor=COLORS["text_secondary"],  # DARK THEME
+            borderwidth=0
+        )
+        style.configure("Horizontal.TScrollbar",
+            background=COLORS["bg_card"],  # DARK THEME
+            troughcolor=COLORS["bg_panel"],  # DARK THEME
+            arrowcolor=COLORS["text_secondary"],  # DARK THEME
+            borderwidth=0
+        )
+
+        # Entry
+        style.configure("TEntry",
+            fieldbackground=COLORS["bg_input"],  # DARK THEME
+            foreground=COLORS["text_primary"],  # DARK THEME
+            insertcolor=COLORS["text_primary"],  # DARK THEME
+            bordercolor=COLORS["border"],  # DARK THEME
+            lightcolor=COLORS["border"],  # DARK THEME
+            darkcolor=COLORS["border"]  # DARK THEME
+        )
+
+        # Combobox
+        style.configure("TCombobox",
+            fieldbackground=COLORS["bg_input"],  # DARK THEME
+            background=COLORS["bg_input"],  # DARK THEME
+            foreground=COLORS["text_primary"],  # DARK THEME
+            arrowcolor=COLORS["text_secondary"],  # DARK THEME
+            selectbackground=COLORS["bg_card"],  # DARK THEME
+            selectforeground=COLORS["text_primary"]  # DARK THEME
+        )
+        style.map("TCombobox",
+            fieldbackground=[("readonly", COLORS["bg_input"])],  # DARK THEME
+            foreground=[("readonly", COLORS["text_primary"])]  # DARK THEME
+        )
+
+        # Button (ttk)
+        style.configure("TButton",
+            background=COLORS["bg_card"],  # DARK THEME
+            foreground=COLORS["text_primary"],  # DARK THEME
+            relief="flat",
+            padding=6
+        )
+        style.map("TButton",
+            background=[("active", COLORS["bg_hover"])]  # DARK THEME
+        )
+
+        # Checkbutton
+        style.configure("TCheckbutton",
+            background=COLORS["bg_panel"],  # DARK THEME
+            foreground=COLORS["text_primary"],  # DARK THEME
+            focuscolor=COLORS["accent_green"]  # DARK THEME
+        )
+        style.map("TCheckbutton",
+            background=[("active", COLORS["bg_panel"])],  # DARK THEME
+            foreground=[("active", COLORS["text_primary"])]  # DARK THEME
+        )
+
+        # Frame
+        style.configure("TFrame",
+            background=COLORS["bg_panel"]  # DARK THEME
+        )
 
     def _build_header(self):
-        header = tk.Frame(self, bg="#34495E", height=85)
+        header = tk.Frame(self, bg=COLORS["bg_header"], height=85)  # DARK THEME
         header.pack(fill="x")
         header.pack_propagate(False)
-        title = tk.Label(header, text="Analisis Data Pendidikan Indonesia",
-                        font=("Segoe UI", 18, "bold"), bg="#34495E", fg="white")
-        title.pack(pady=(18, 3))
-        subtitle = tk.Label(header, text="Data Sekolah, Siswa, Guru, dan Infrastruktur per Provinsi",
-                           font=("Segoe UI", 10), bg="#34495E", fg="#BDC3C7")
-        subtitle.pack()
+        tk.Label(header,
+                 text="Analisis Data Pendidikan Indonesia",
+                 font=("Segoe UI", 18, "bold"),
+                 bg=COLORS["bg_header"],  # DARK THEME
+                 fg=COLORS["text_header"]  # DARK THEME
+        ).pack(pady=(18, 3))
+        tk.Label(header,
+                 text="Data Sekolah, Siswa, Guru, dan Infrastruktur per Provinsi",
+                 font=("Segoe UI", 10),
+                 bg=COLORS["bg_header"],  # DARK THEME
+                 fg=COLORS["text_subtitle"]  # DARK THEME
+        ).pack()
 
     def _build_main_area(self):
-        main = tk.Frame(self, bg="#ECF0F1")
+        main = tk.Frame(self, bg=COLORS["bg_main"])  # DARK THEME
         main.pack(fill="both", expand=True, padx=12, pady=12)
         main.columnconfigure(0, minsize=300)
         main.columnconfigure(1, weight=1)
         main.rowconfigure(0, weight=1)
 
-        left = tk.Frame(main, bg="#FFFFFF")
+        left = tk.Frame(main, bg=COLORS["bg_panel"])  # DARK THEME
         left.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
         self._build_left_panel(left)
 
-        right = tk.Frame(main, bg="#FFFFFF", relief="flat")
+        right = tk.Frame(main, bg=COLORS["bg_panel"])  # DARK THEME
         right.grid(row=0, column=1, sticky="nsew")
         self._build_right_panel(right)
 
     def _build_left_panel(self, panel):
-        panel.configure(bg="#FFFFFF")
+        panel.configure(bg=COLORS["bg_panel"])  # DARK THEME
         
-        canvas = tk.Canvas(panel, bg="#FFFFFF", highlightthickness=0)
+        canvas = tk.Canvas(panel, bg=COLORS["bg_panel"], highlightthickness=0)  # DARK THEME
         scrollbar = ttk.Scrollbar(panel, orient="vertical", command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, bg="#FFFFFF")
+        scrollable_frame = tk.Frame(canvas, bg=COLORS["bg_panel"])  # DARK THEME
         
         scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
@@ -81,12 +260,11 @@ class App(tk.Tk):
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         
-        tk.Frame(scrollable_frame, height=2, bg="#E0E0E0").pack(fill="x", padx=20, pady=(20, 0))
-        lbl1 = tk.Label(scrollable_frame, text="File Dataset", font=("Segoe UI", 11, "bold"),
-                       bg="#FFFFFF", fg="#2C3E50")
-        lbl1.pack(anchor="w", padx=20, pady=(15, 8))
+        tk.Frame(scrollable_frame, height=2, bg=COLORS["separator"]).pack(fill="x", padx=20, pady=(20, 0))  # DARK THEME
+        tk.Label(scrollable_frame, text="📂 File Dataset", font=("Segoe UI", 11, "bold"),
+                bg=COLORS["bg_panel"], fg=COLORS["text_primary"]).pack(anchor="w", padx=20, pady=(15, 8))  # DARK THEME
         
-        file_frame = tk.Frame(scrollable_frame, bg="#FFFFFF")
+        file_frame = tk.Frame(scrollable_frame, bg=COLORS["bg_panel"])  # DARK THEME
         file_frame.pack(fill="x", padx=20)
         file_frame.columnconfigure(0, weight=1)
         
@@ -95,12 +273,11 @@ class App(tk.Tk):
         btn_file = ttk.Button(file_frame, text="Pilih File", command=self._browse_file, width=12)
         btn_file.grid(row=0, column=1)
         
-        tk.Frame(scrollable_frame, height=2, bg="#E0E0E0").pack(fill="x", padx=20, pady=(20, 0))
-        lbl2 = tk.Label(scrollable_frame, text="Folder Output", font=("Segoe UI", 11, "bold"),
-                       bg="#FFFFFF", fg="#2C3E50")
-        lbl2.pack(anchor="w", padx=20, pady=(15, 8))
+        tk.Frame(scrollable_frame, height=2, bg=COLORS["separator"]).pack(fill="x", padx=20, pady=(20, 0))  # DARK THEME
+        tk.Label(scrollable_frame, text="📁 Folder Output", font=("Segoe UI", 11, "bold"),
+                bg=COLORS["bg_panel"], fg=COLORS["text_primary"]).pack(anchor="w", padx=20, pady=(15, 8))  # DARK THEME
         
-        out_frame = tk.Frame(scrollable_frame, bg="#FFFFFF")
+        out_frame = tk.Frame(scrollable_frame, bg=COLORS["bg_panel"])  # DARK THEME
         out_frame.pack(fill="x", padx=20)
         out_frame.columnconfigure(0, weight=1)
         
@@ -109,44 +286,43 @@ class App(tk.Tk):
         btn_out = ttk.Button(out_frame, text="Pilih Folder", command=self._browse_output, width=12)
         btn_out.grid(row=0, column=1)
         
-        tk.Frame(scrollable_frame, height=2, bg="#E0E0E0").pack(fill="x", padx=20, pady=(20, 0))
-        lbl3 = tk.Label(scrollable_frame, text="Pilihan Output", font=("Segoe UI", 11, "bold"),
-                       bg="#FFFFFF", fg="#2C3E50")
-        lbl3.pack(anchor="w", padx=20, pady=(15, 10))
+        tk.Frame(scrollable_frame, height=2, bg=COLORS["separator"]).pack(fill="x", padx=20, pady=(20, 0))  # DARK THEME
+        tk.Label(scrollable_frame, text="⚙️ Pilihan Output", font=("Segoe UI", 11, "bold"),
+                bg=COLORS["bg_panel"], fg=COLORS["text_primary"]).pack(anchor="w", padx=20, pady=(15, 10))  # DARK THEME
         
         ttk.Checkbutton(scrollable_frame, text="Feature Engineering CSV", variable=self.opt_csv_feature).pack(anchor="w", padx=25, pady=3)
         ttk.Checkbutton(scrollable_frame, text="Ranking Provinsi CSV", variable=self.opt_csv_ranking).pack(anchor="w", padx=25, pady=3)
         ttk.Checkbutton(scrollable_frame, text="Generate Charts (PNG)", variable=self.opt_charts).pack(anchor="w", padx=25, pady=3)
         
-        tk.Frame(scrollable_frame, height=2, bg="#E0E0E0").pack(fill="x", padx=20, pady=(25, 0))
+        tk.Frame(scrollable_frame, height=2, bg=COLORS["separator"]).pack(fill="x", padx=20, pady=(25, 0))  # DARK THEME
         
-        btn_frame = tk.Frame(scrollable_frame, bg="#FFFFFF")
+        btn_frame = tk.Frame(scrollable_frame, bg=COLORS["bg_panel"])  # DARK THEME
         btn_frame.pack(fill="x", padx=20, pady=(15, 10))
         
-        self.btn_run = create_flat_button(btn_frame, "Jalankan Proses", "#27AE60", self._start_process_thread, is_primary=True)
+        self.btn_run = create_flat_button(btn_frame, "Jalankan Proses", COLORS["accent_green"], self._start_process_thread, is_primary=True)  # DARK THEME
         self.btn_run.pack(fill="x", pady=(0, 8))
-        add_hover_effect(self.btn_run, "#27AE60", hover_colors["#27AE60"])
+        add_hover_effect(self.btn_run, COLORS["accent_green"], hover_colors[COLORS["accent_green"]])  # DARK THEME
         
-        self.btn_open = create_flat_button(btn_frame, "Buka Folder Output", "#2980B9", self._open_output_folder)
+        self.btn_open = create_flat_button(btn_frame, "Buka Folder Output", COLORS["accent_blue"], self._open_output_folder)  # DARK THEME
         self.btn_open.pack(fill="x", pady=(0, 8))
-        add_hover_effect(self.btn_open, "#2980B9", hover_colors["#2980B9"])
+        add_hover_effect(self.btn_open, COLORS["accent_blue"], hover_colors[COLORS["accent_blue"]])  # DARK THEME
         
-        self.btn_clear = create_flat_button(btn_frame, "Bersihkan Log", "#95A5A6", self._clear_log)
+        self.btn_clear = create_flat_button(btn_frame, "Bersihkan Log", COLORS["accent_gray"], self._clear_log)  # DARK THEME
         self.btn_clear.pack(fill="x")
-        add_hover_effect(self.btn_clear, "#95A5A6", "#7F8C8D")
+        add_hover_effect(self.btn_clear, COLORS["accent_gray"], hover_colors[COLORS["accent_gray"]])  # DARK THEME
 
     def _build_right_panel(self, parent):
         notebook = ttk.Notebook(parent)
         notebook.pack(fill='both', expand=True)
         
         # Tab 1: Log Proses
-        log_frame = tk.Frame(notebook, bg="#FFFFFF")
+        log_frame = tk.Frame(notebook, bg=COLORS["bg_panel"])  # DARK THEME
         notebook.add(log_frame, text="  📋 Log Proses  ")
         self._build_log_area(log_frame)
         
-        # Tab 2: Tabel Data (CSV SWITCH FIX: renamed from Tabel Ranking)
+        # Tab 2: Tabel Data
         table_frame = self._build_table_tab(notebook)
-        notebook.add(table_frame, text="  📊 Tabel Data  ")  # CSV SWITCH FIX
+        notebook.add(table_frame, text="  📊 Tabel Data  ")
         
         # Tab 3: Preview Chart
         chart_frame_tab = self._build_chart_tab(notebook)
@@ -155,36 +331,50 @@ class App(tk.Tk):
         self.notebook = notebook
 
     def _build_log_area(self, parent):
-        header_frame = tk.Frame(parent, bg="#FFFFFF")
+        header_frame = tk.Frame(parent, bg=COLORS["bg_panel"])  # DARK THEME
         header_frame.pack(fill="x", padx=20, pady=(15, 10))
         
-        tk.Label(header_frame, text="Log Proses", font=("Segoe UI", 12, "bold"),
-                bg="#FFFFFF", fg="#2C3E50").pack(side="left")
+        tk.Label(header_frame,
+                 text="📋 Log Proses",
+                 font=("Segoe UI", 12, "bold"),
+                 bg=COLORS["bg_panel"],  # DARK THEME
+                 fg=COLORS["text_primary"]  # DARK THEME
+        ).pack(side="left")
         
-        tk.Frame(parent, height=1, bg="#E0E0E0").pack(fill="x", padx=20)
+        tk.Frame(parent, height=1, bg=COLORS["separator"]).pack(fill="x", padx=20)  # DARK THEME
         
-        self.log_widget = scrolledtext.ScrolledText(parent, font=("Consolas", 10),
-                                                    bg="#1E1E1E", fg="#D4D4D4",
-                                                    state="disabled", wrap="word",
-                                                    insertbackground="white")
+        self.log_widget = scrolledtext.ScrolledText(
+            parent,
+            font=("Consolas", 11),
+            bg=COLORS["bg_terminal"],  # DARK THEME
+            fg="#D4D4D4",
+            state="disabled",
+            wrap="word",
+            insertbackground="white",
+            selectbackground=COLORS["bg_card"],  # DARK THEME
+            spacing1=2, spacing3=2
+        )
         self.log_widget.pack(fill="both", expand=True, padx=20, pady=(10, 20))
-        self.log_widget.tag_configure("info", foreground="#4FC3F7")
-        self.log_widget.tag_configure("success", foreground="#81C784")
-        self.log_widget.tag_configure("warning", foreground="#FFD54F")
-        self.log_widget.tag_configure("error", foreground="#E57373")
-        self.log_widget.tag_configure("header", foreground="#CE93D8", font=("Consolas", 10, "bold"))
+        
+        self.log_widget.tag_configure("info", foreground=COLORS["log_info"])  # DARK THEME
+        self.log_widget.tag_configure("success", foreground=COLORS["log_success"])  # DARK THEME
+        self.log_widget.tag_configure("warning", foreground=COLORS["log_warning"])  # DARK THEME
+        self.log_widget.tag_configure("error", foreground=COLORS["log_error"])  # DARK THEME
+        self.log_widget.tag_configure("header", foreground=COLORS["log_header"], font=("Consolas", 11, "bold"))  # DARK THEME
 
-    # CSV SWITCH FIX: Complete rewrite to support both CSV files
     def _build_table_tab(self, parent):
-        frame = tk.Frame(parent, bg="#FFFFFF")
+        frame = tk.Frame(parent, bg=COLORS["bg_panel"])  # DARK THEME
         
         # Top bar: dropdown selector
-        top_bar = tk.Frame(frame, bg="#F0F0F0", pady=8)
+        top_bar = tk.Frame(frame, bg=COLORS["bg_card"], pady=8)  # DARK THEME
         top_bar.pack(fill="x", padx=0, pady=0)
         
-        tk.Label(top_bar, text="  Tampilkan Data:", 
+        tk.Label(top_bar,
+                 text="  Tampilkan Data:",
                  font=("Segoe UI", 10, "bold"),
-                 bg="#F0F0F0", fg="#2C3E50").pack(side="left", padx=(12, 6))
+                 bg=COLORS["bg_card"],  # DARK THEME
+                 fg=COLORS["text_primary"]  # DARK THEME
+        ).pack(side="left", padx=(12, 6))
         
         self.table_choice = tk.StringVar(value="ranking_provinsi.csv")
         dropdown = ttk.Combobox(
@@ -205,15 +395,16 @@ class App(tk.Tk):
         self.table_info_label = tk.Label(
             top_bar, text="", 
             font=("Segoe UI", 9, "italic"),
-            bg="#F0F0F0", fg="#7F8C8D"
+            bg=COLORS["bg_card"],  # DARK THEME
+            fg=COLORS["text_secondary"]  # DARK THEME
         )
         self.table_info_label.pack(side="right", padx=12)
         
         # Separator
-        tk.Frame(frame, height=1, bg="#DCDCDC").pack(fill="x")
+        tk.Frame(frame, height=1, bg=COLORS["separator"]).pack(fill="x")  # DARK THEME
         
         # Treeview container
-        tree_container = tk.Frame(frame, bg="#FFFFFF")
+        tree_container = tk.Frame(frame, bg=COLORS["tree_bg"])  # DARK THEME
         tree_container.pack(fill="both", expand=True)
         tree_container.grid_rowconfigure(0, weight=1)
         tree_container.grid_columnconfigure(0, weight=1)
@@ -230,12 +421,11 @@ class App(tk.Tk):
         hsb.grid(row=1, column=0, sticky="ew")
         
         # Row color tags
-        self.ranking_tree.tag_configure("oddrow", background="#F4F6F7")
-        self.ranking_tree.tag_configure("evenrow", background="#FFFFFF")
+        self.ranking_tree.tag_configure("oddrow", background=COLORS["tree_odd"])  # DARK THEME
+        self.ranking_tree.tag_configure("evenrow", background=COLORS["tree_even"])  # DARK THEME
         
         return frame
 
-    # CSV SWITCH FIX: Dynamic loading for both CSV files
     def _load_table_data(self):
         import pandas as pd
         
@@ -281,7 +471,17 @@ class App(tk.Tk):
         )
 
     def _build_chart_tab(self, parent):
-        frame = ttk.Frame(parent, padding=10)
+        frame = tk.Frame(parent, bg=COLORS["bg_panel"], padx=10, pady=10)  # DARK THEME
+        
+        top_bar = tk.Frame(frame, bg=COLORS["bg_card"], pady=6)  # DARK THEME
+        top_bar.pack(fill="x", pady=(0, 8))
+        
+        tk.Label(top_bar,
+                 text="  🖼 Pilih Chart:",
+                 font=("Segoe UI", 10, "bold"),
+                 bg=COLORS["bg_card"],  # DARK THEME
+                 fg=COLORS["text_primary"]  # DARK THEME
+        ).pack(side="left", padx=(8, 6))
         
         self.chart_var = tk.StringVar(value="chart1_putus_sekolah.png")
         chart_options = [
@@ -290,20 +490,21 @@ class App(tk.Tk):
             "chart3_kondisi_kelas.png"
         ]
         
-        top_bar = ttk.Frame(frame)
-        top_bar.pack(fill='x', pady=(0, 8))
-        ttk.Label(top_bar, text="Pilih Chart:").pack(side='left', padx=(0, 6))
         dropdown = ttk.Combobox(top_bar, textvariable=self.chart_var,
                                 values=chart_options, state="readonly", width=35)
-        dropdown.pack(side='left')
+        dropdown.pack(side="left")
         dropdown.bind("<<ComboboxSelected>>", lambda e: self._show_chart())
         
-        ttk.Button(top_bar, text="Refresh", command=self._show_chart).pack(side='left', padx=6)
+        ttk.Button(top_bar, text="Refresh", command=self._show_chart).pack(side="left", padx=6)
         
-        self.chart_canvas = tk.Label(frame, bg="#2B2B2B",
-                                      text="Jalankan proses terlebih dahulu\nuntuk melihat chart.",
-                                      fg="#888888", font=("Segoe UI", 11))
-        self.chart_canvas.pack(fill='both', expand=True)
+        self.chart_canvas = tk.Label(
+            frame,
+            bg=COLORS["bg_terminal"],  # DARK THEME
+            text="Jalankan proses terlebih dahulu\nuntuk melihat chart.",
+            fg="#555555",
+            font=("Segoe UI", 11)
+        )
+        self.chart_canvas.pack(fill="both", expand=True)
         
         return frame
 
@@ -329,12 +530,24 @@ class App(tk.Tk):
         self.chart_canvas._image_ref = photo
 
     def _build_status_bar(self):
-        self.status_bar = tk.Frame(self, bg="#34495E", height=32)
+        self.status_bar = tk.Frame(self, bg=COLORS["bg_statusbar"], height=32)  # DARK THEME
         self.status_bar.pack(fill="x", side="bottom")
-        self.status_label = tk.Label(self.status_bar, text="Siap. Pilih file dataset dan klik Jalankan Proses.",
-                                    font=("Segoe UI", 9), bg="#34495E", fg="white")
+        
+        self.status_label = tk.Label(
+            self.status_bar,
+            text="Siap. Pilih file dataset dan klik Jalankan Proses.",
+            font=("Segoe UI", 9),
+            bg=COLORS["bg_statusbar"],  # DARK THEME
+            fg=COLORS["text_primary"]  # DARK THEME
+        )
         self.status_label.pack(side="left", padx=15, pady=6)
-        self.progress = ttk.Progressbar(self.status_bar, mode="indeterminate", length=140)
+        
+        self.progress = ttk.Progressbar(
+            self.status_bar,
+            style="green.Horizontal.TProgressbar",
+            mode="indeterminate",
+            length=140
+        )
         self.progress.pack(side="right", padx=15, pady=5)
 
     def _log_welcome(self):
