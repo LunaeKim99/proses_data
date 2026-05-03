@@ -73,7 +73,10 @@ Dataset harus memiliki kolom:
 - Ranking provinsi
 
 ## Fitur GUI
-- Antarmuka Tkinter modern dengan widget bertema
+- Antarmuka Tkinter modern dengan notebook 3 tab
+- Tab 1: Log Proses - log terminal real-time dengan warna pesan
+- Tab 2: Tabel Data - tampilan tabel dengan dropdown switcher antara `ranking_provinsi.csv` dan `feature_engineered.csv`
+- Tab 3: Preview Chart - preview 3 chart PNG dengan dropdown pilihan
 - Jelajah file dataset CSV dan folder output
 - Pilih output yang akan dibuat (CSV, chart)
 - Log proses real-time dengan warna pesan
