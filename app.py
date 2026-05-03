@@ -38,6 +38,9 @@ class App(tk.Tk):
         self.minsize(750, 550)
         self.configure(bg="#ECF0F1")
         self.option_add("*Font", ("Segoe UI", 10))
+        # BUG FIX: Add notebook tab style
+        style = ttk.Style()
+        style.configure("TNotebook.Tab", padding=[12, 8])
 
     def _build_header(self):
         header = tk.Frame(self, bg="#34495E", height=85)
@@ -50,17 +53,26 @@ class App(tk.Tk):
                            font=("Segoe UI", 10), bg="#34495E", fg="#BDC3C7")
         subtitle.pack()
 
+    # BUG FIX: Corrected _build_main_area - panels now gridded before passing to builders
     def _build_main_area(self):
         main = tk.Frame(self, bg="#ECF0F1")
         main.pack(fill="both", expand=True, padx=12, pady=12)
         main.columnconfigure(0, minsize=300)
         main.columnconfigure(1, weight=1)
         main.rowconfigure(0, weight=1)
-        self._build_left_panel(tk.Frame(main, bg="#FFFFFF"))
-        self._build_right_panel(tk.Frame(main, bg="#FFFFFF"))
 
+        # Left panel - create frame and attach to grid BEFORE passing to builder
+        left = tk.Frame(main, bg="#FFFFFF")
+        left.grid(row=0, column=0, sticky="nsew", padx=(0, 6))  # BUG FIX
+        self._build_left_panel(left)
+
+        # Right panel - MUST also be attached to grid
+        right = tk.Frame(main, bg="#FFFFFF", relief="flat")  # BUG FIX
+        right.grid(row=0, column=1, sticky="nsew")  # BUG FIX
+        self._build_right_panel(right)
+
+    # BUG FIX: Removed internal .grid() call - panel is now positioned by _build_main_area()
     def _build_left_panel(self, panel):
-        panel.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
         panel.configure(bg="#FFFFFF")
         
         canvas = tk.Canvas(panel, bg="#FFFFFF", highlightthickness=0)
@@ -128,27 +140,26 @@ class App(tk.Tk):
         self.btn_clear.pack(fill="x")
         add_hover_effect(self.btn_clear, "#95A5A6", "#7F8C8D")
 
-    # CHANGE 1: Updated _build_right_panel with Notebook
+    # BUG FIX: Removed padx=(6, 0) from notebook.pack()
     def _build_right_panel(self, parent):
         notebook = ttk.Notebook(parent)
-        notebook.pack(fill='both', expand=True, padx=(6, 0))
+        notebook.pack(fill='both', expand=True)  # BUG FIX
         
         # Tab 1: Log Proses
         log_frame = tk.Frame(notebook, bg="#FFFFFF")
-        notebook.add(log_frame, text="  Log Proses  ")
+        notebook.add(log_frame, text="  📋 Log Proses  ")  # BUG FIX: added emoji
         self._build_log_area(log_frame)
         
         # Tab 2: Tabel Ranking
         table_frame = self._build_table_tab(notebook)
-        notebook.add(table_frame, text="  Tabel Ranking  ")
+        notebook.add(table_frame, text="  📊 Tabel Ranking  ")  # BUG FIX: added emoji
         
         # Tab 3: Preview Chart
         chart_frame_tab = self._build_chart_tab(notebook)
-        notebook.add(chart_frame_tab, text="  Preview Chart  ")
+        notebook.add(chart_frame_tab, text="  🖼 Preview Chart  ")  # BUG FIX: added emoji
         
         self.notebook = notebook
 
-    # CHANGE 2: Extract log area building
     def _build_log_area(self, parent):
         header_frame = tk.Frame(parent, bg="#FFFFFF")
         header_frame.pack(fill="x", padx=20, pady=(15, 10))
@@ -169,7 +180,6 @@ class App(tk.Tk):
         self.log_widget.tag_configure("error", foreground="#E57373")
         self.log_widget.tag_configure("header", foreground="#CE93D8", font=("Consolas", 10, "bold"))
 
-    # CHANGE 3: Add _build_table_tab method
     def _build_table_tab(self, parent):
         frame = ttk.Frame(parent)
         
@@ -205,7 +215,6 @@ class App(tk.Tk):
         self.ranking_tree = tree
         return frame
 
-    # CHANGE 4: Add _load_table_data method
     def _load_table_data(self):
         import pandas as pd
         path = os.path.join(self.output_path.get(), "ranking_provinsi.csv")
@@ -222,7 +231,6 @@ class App(tk.Tk):
             )]
             self.ranking_tree.insert("", "end", values=values, tags=(tag,))
 
-    # CHANGE 5: Add _build_chart_tab method
     def _build_chart_tab(self, parent):
         frame = ttk.Frame(parent, padding=10)
         
@@ -250,7 +258,6 @@ class App(tk.Tk):
         
         return frame
 
-    # CHANGE 6: Add _show_chart method
     def _show_chart(self):
         try:
             from PIL import Image, ImageTk
