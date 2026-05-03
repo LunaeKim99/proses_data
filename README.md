@@ -61,6 +61,8 @@ python main.py
 
 ## Dataset
 
+Dataset diambil dari: https://www.kaggle.com/datasets/puanbeningpastika/dataset-pendidikan-sd-indonesia-2023-2024/data
+
 Dataset harus memiliki kolom:
 `Provinsi, Sekolah, Siswa, Mengulang, Putus Sekolah, Kepala Sekolah dan Guru(<S1), Kepala Sekolah dan Guru(>S1), Tenaga Kependidikan(SM), Tenaga Kependidikan(>SM), Rombongan Belajar, Ruang kelas(baik), Ruang kelas(rusak ringan), Ruang kelas(rusak sedang), Ruang kelas(rusak berat)`
 
