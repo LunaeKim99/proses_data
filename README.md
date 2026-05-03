@@ -6,7 +6,8 @@ Proyek modular Python untuk memproses dataset pendidikan CSV dan menghasilkan an
 
 ```
 proses_data/
-├── main.py                    # Entry point
+├── app.py                     # GUI entry point (baru)
+├── main.py                    # Logika backend (tetap ada)
 ├── dataset.csv                # Dataset input (tidak di-track)
 ├── requirements.txt           # Dependencies
 ├── modules/
@@ -14,7 +15,10 @@ proses_data/
 │   ├── data_loader.py        # Memuat dan membersihkan data
 │   ├── feature_engineer.py   # Feature engineering
 │   ├── exporter.py           # Export file CSV
-│   └── visualizer.py         # Generate chart PNG
+│   ├── visualizer.py         # Generate chart PNG
+│   └── gui/                  # NEW: Komponen GUI
+│       ├── __init__.py
+│       └── components.py     # Widget GUI yang dapat digunakan kembali
 └── output/                    # Hasil output (tidak di-track)
 ```
 
@@ -26,8 +30,20 @@ pip install -r requirements.txt
 
 ## Penggunaan
 
+### Mode GUI (Rekomendasi)
 1. Letakkan `dataset.csv` di direktori root proyek
-2. Jalankan:
+2. Install dependensi:
+```bash
+pip install -r requirements.txt
+```
+3. Jalankan GUI:
+```bash
+python app.py
+```
+4. Gunakan antarmuka GUI untuk memilih dataset, folder output, pilih output yang diinginkan, lalu klik "Jalankan Proses".
+
+### Mode CLI (Legacy)
+Anda masih dapat menjalankan backend langsung via `main.py`:
 ```bash
 python main.py
 ```
@@ -55,3 +71,12 @@ Dataset harus memiliki kolom:
 - Rasio Siswa-Guru
 - Persentase Guru S1 ke atas
 - Ranking provinsi
+
+## Fitur GUI
+- Antarmuka Tkinter modern dengan widget bertema
+- Jelajah file dataset CSV dan folder output
+- Pilih output yang akan dibuat (CSV, chart)
+- Log proses real-time dengan warna pesan
+- Progress bar saat pemrosesan
+- Buka folder output langsung dari GUI
+- Pemrosesan threaded agar GUI tetap responsif
