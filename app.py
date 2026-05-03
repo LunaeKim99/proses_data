@@ -63,7 +63,6 @@ class App(tk.Tk):
         panel.grid(row=0, column=0, sticky="nsew", padx=(0, 12))
         panel.configure(bg="#FFFFFF")
         
-        # Canvas for scrollable content
         canvas = tk.Canvas(panel, bg="#FFFFFF", highlightthickness=0)
         scrollbar = ttk.Scrollbar(panel, orient="vertical", command=canvas.yview)
         scrollable_frame = tk.Frame(canvas, bg="#FFFFFF")
@@ -75,7 +74,6 @@ class App(tk.Tk):
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         
-        # Section 1: Input File
         tk.Frame(scrollable_frame, height=2, bg="#E0E0E0").pack(fill="x", padx=20, pady=(20, 0))
         lbl1 = tk.Label(scrollable_frame, text="File Dataset", font=("Segoe UI", 11, "bold"),
                        bg="#FFFFFF", fg="#2C3E50")
@@ -90,7 +88,6 @@ class App(tk.Tk):
         btn_file = ttk.Button(file_frame, text="Pilih File", command=self._browse_file, width=12)
         btn_file.grid(row=0, column=1)
         
-        # Section 2: Output Folder
         tk.Frame(scrollable_frame, height=2, bg="#E0E0E0").pack(fill="x", padx=20, pady=(20, 0))
         lbl2 = tk.Label(scrollable_frame, text="Folder Output", font=("Segoe UI", 11, "bold"),
                        bg="#FFFFFF", fg="#2C3E50")
@@ -105,7 +102,6 @@ class App(tk.Tk):
         btn_out = ttk.Button(out_frame, text="Pilih Folder", command=self._browse_output, width=12)
         btn_out.grid(row=0, column=1)
         
-        # Section 3: Output Options
         tk.Frame(scrollable_frame, height=2, bg="#E0E0E0").pack(fill="x", padx=20, pady=(20, 0))
         lbl3 = tk.Label(scrollable_frame, text="Pilihan Output", font=("Segoe UI", 11, "bold"),
                        bg="#FFFFFF", fg="#2C3E50")
@@ -115,7 +111,6 @@ class App(tk.Tk):
         ttk.Checkbutton(scrollable_frame, text="Ranking Provinsi CSV", variable=self.opt_csv_ranking).pack(anchor="w", padx=25, pady=3)
         ttk.Checkbutton(scrollable_frame, text="Generate Charts (PNG)", variable=self.opt_charts).pack(anchor="w", padx=25, pady=3)
         
-        # Section 4: Action Buttons
         tk.Frame(scrollable_frame, height=2, bg="#E0E0E0").pack(fill="x", padx=20, pady=(25, 0))
         
         btn_frame = tk.Frame(scrollable_frame, bg="#FFFFFF")
@@ -133,19 +128,39 @@ class App(tk.Tk):
         self.btn_clear.pack(fill="x")
         add_hover_effect(self.btn_clear, "#95A5A6", "#7F8C8D")
 
-    def _build_right_panel(self, panel):
-        panel.grid(row=0, column=1, sticky="nsew")
-        panel.configure(bg="#FFFFFF")
+    # CHANGE 1: Updated _build_right_panel with Notebook
+    def _build_right_panel(self, parent):
+        notebook = ttk.Notebook(parent)
+        notebook.pack(fill='both', expand=True, padx=(6, 0))
         
-        header_frame = tk.Frame(panel, bg="#FFFFFF")
+        # Tab 1: Log Proses
+        log_frame = ttk.Frame(notebook)
+        notebook.add(log_frame, text="  Log Proses  ")
+        self._build_log_area(log_frame)
+        
+        # Tab 2: Tabel Ranking
+        table_frame = self._build_table_tab(notebook)
+        notebook.add(table_frame, text="  Tabel Ranking  ")
+        
+        # Tab 3: Preview Chart
+        chart_frame_tab = self._build_chart_tab(notebook)
+        notebook.add(chart_frame_tab, text="  Preview Chart  ")
+        
+        self.notebook = notebook
+
+    # CHANGE 2: Extract log area building
+    def _build_log_area(self, parent):
+        parent.configure(bg="#FFFFFF")
+        
+        header_frame = tk.Frame(parent, bg="#FFFFFF")
         header_frame.pack(fill="x", padx=20, pady=(15, 10))
         
         tk.Label(header_frame, text="Log Proses", font=("Segoe UI", 12, "bold"),
                 bg="#FFFFFF", fg="#2C3E50").pack(side="left")
         
-        tk.Frame(panel, height=1, bg="#E0E0E0").pack(fill="x", padx=20)
+        tk.Frame(parent, height=1, bg="#E0E0E0").pack(fill="x", padx=20)
         
-        self.log_widget = scrolledtext.ScrolledText(panel, font=("Consolas", 10),
+        self.log_widget = scrolledtext.ScrolledText(parent, font=("Consolas", 10),
                                                     bg="#1E1E1E", fg="#D4D4D4",
                                                     state="disabled", wrap="word",
                                                     insertbackground="white")
@@ -155,6 +170,109 @@ class App(tk.Tk):
         self.log_widget.tag_configure("warning", foreground="#FFD54F")
         self.log_widget.tag_configure("error", foreground="#E57373")
         self.log_widget.tag_configure("header", foreground="#CE93D8", font=("Consolas", 10, "bold"))
+
+    # CHANGE 3: Add _build_table_tab method
+    def _build_table_tab(self, parent):
+        frame = ttk.Frame(parent)
+        
+        columns = ("Provinsi", "Siswa", "Sekolah", "Rasio_Putus_Sekolah",
+                   "Persen_Kelas_Rusak", "Rasio_Siswa_Guru", "Rank_Siswa",
+                   "Rank_Putus_Sekolah", "Rank_Kelas_Rusak")
+        
+        tree = ttk.Treeview(frame, columns=columns, show="headings", height=20)
+        
+        col_widths = {
+            "Provinsi": 160, "Siswa": 90, "Sekolah": 70,
+            "Rasio_Putus_Sekolah": 120, "Persen_Kelas_Rusak": 120,
+            "Rasio_Siswa_Guru": 110, "Rank_Siswa": 80,
+            "Rank_Putus_Sekolah": 110, "Rank_Kelas_Rusak": 110
+        }
+        for col in columns:
+            tree.heading(col, text=col.replace("_", " "))
+            tree.column(col, width=col_widths.get(col, 100), anchor="center")
+        
+        tree.tag_configure("oddrow", background="#F9F9F9")
+        tree.tag_configure("evenrow", background="#FFFFFF")
+        
+        vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+        hsb = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
+        tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+        
+        tree.grid(row=0, column=0, sticky="nsew")
+        vsb.grid(row=0, column=1, sticky="ns")
+        hsb.grid(row=1, column=0, sticky="ew")
+        frame.grid_rowconfigure(0, weight=1)
+        frame.grid_columnconfigure(0, weight=1)
+        
+        self.ranking_tree = tree
+        return frame
+
+    # CHANGE 4: Add _load_table_data method
+    def _load_table_data(self):
+        import pandas as pd
+        path = os.path.join(self.output_path.get(), "ranking_provinsi.csv")
+        if not os.path.exists(path):
+            return
+        df = pd.read_csv(path)
+        self.ranking_tree.delete(*self.ranking_tree.get_children())
+        for i, row in df.iterrows():
+            tag = "oddrow" if i % 2 == 0 else "evenrow"
+            values = [row.get(col, "") for col in (
+                "Provinsi", "Siswa", "Sekolah", "Rasio_Putus_Sekolah",
+                "Persen_Kelas_Rusak", "Rasio_Siswa_Guru",
+                "Rank_Siswa", "Rank_Putus_Sekolah", "Rank_Kelas_Rusak"
+            )]
+            self.ranking_tree.insert("", "end", values=values, tags=(tag,))
+
+    # CHANGE 5: Add _build_chart_tab method
+    def _build_chart_tab(self, parent):
+        frame = ttk.Frame(parent, padding=10)
+        
+        self.chart_var = tk.StringVar(value="chart1_putus_sekolah.png")
+        chart_options = [
+            "chart1_putus_sekolah.png",
+            "chart2_scatter_korelasi.png",
+            "chart3_kondisi_kelas.png"
+        ]
+        
+        top_bar = ttk.Frame(frame)
+        top_bar.pack(fill='x', pady=(0, 8))
+        ttk.Label(top_bar, text="Pilih Chart:").pack(side='left', padx=(0, 6))
+        dropdown = ttk.Combobox(top_bar, textvariable=self.chart_var,
+                                values=chart_options, state="readonly", width=35)
+        dropdown.pack(side='left')
+        dropdown.bind("<<ComboboxSelected>>", lambda e: self._show_chart())
+        
+        ttk.Button(top_bar, text="Refresh", command=self._show_chart).pack(side='left', padx=6)
+        
+        self.chart_canvas = tk.Label(frame, bg="#2B2B2B",
+                                      text="Jalankan proses terlebih dahulu\nuntuk melihat chart.",
+                                      fg="#888888", font=("Segoe UI", 11))
+        self.chart_canvas.pack(fill='both', expand=True)
+        
+        return frame
+
+    # CHANGE 6: Add _show_chart method
+    def _show_chart(self):
+        try:
+            from PIL import Image, ImageTk
+        except ImportError:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "Pillow", "-q"])
+            from PIL import Image, ImageTk
+        
+        filename = self.chart_var.get()
+        path = os.path.join(self.output_path.get(), filename)
+        if not os.path.exists(path):
+            self.chart_canvas.config(text="File chart belum ada.\nJalankan proses terlebih dahulu.", image="")
+            return
+        
+        img = Image.open(path)
+        canvas_w = self.chart_canvas.winfo_width() or 600
+        canvas_h = self.chart_canvas.winfo_height() or 400
+        img.thumbnail((canvas_w, canvas_h), Image.LANCZOS)
+        photo = ImageTk.PhotoImage(img)
+        self.chart_canvas.config(image=photo, text="")
+        self.chart_canvas._image_ref = photo
 
     def _build_status_bar(self):
         self.status_bar = tk.Frame(self, bg="#34495E", height=32)
@@ -253,6 +371,10 @@ class App(tk.Tk):
             self.after(0, lambda: log_message(self.log_widget, "SELESAI! Semua output telah dibuat.", "success"))
             self.after(0, lambda: log_message(self.log_widget, "═══════════════════════════════════", "header"))
             self.after(0, lambda: self.status_label.config(text=f"Selesai! Output tersimpan di folder: {output_dir}/"))
+            # Auto-switch to Table tab and load data
+            self.after(0, self._load_table_data)
+            self.after(0, self._show_chart)
+            self.after(0, lambda: self.notebook.select(1))
         except Exception as e:
             self.after(0, lambda: log_message(self.log_widget, f"Error: {str(e)}", "error"))
             self.after(0, lambda: self.status_label.config(text=f"Error: {str(e)}"))
