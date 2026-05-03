@@ -1,0 +1,33 @@
+import tkinter as tk
+from datetime import datetime
+
+def create_section_label(parent, text: str) -> tk.Label:
+    label = tk.Label(parent, text=text, font=("Segoe UI", 10, "bold"),
+                    bg="#FFFFFF", fg="#2C3E50", anchor="w")
+    return label
+
+def create_flat_button(parent, text: str, bg: str, command) -> tk.Button:
+    btn = tk.Button(parent, text=text, bg=bg, fg="white",
+                   font=("Segoe UI", 11, "bold") if "Jalankan" in text else ("Segoe UI", 10),
+                   relief="flat", cursor="hand2", borderwidth=0,
+                   activebackground=bg, activeforeground="white",
+                   command=command)
+    if "Jalankan" in text:
+        btn.config(height=2)
+    return btn
+
+def add_hover_effect(button: tk.Button, normal_color: str, hover_color: str) -> None:
+    def on_enter(e):
+        button.config(bg=hover_color)
+    def on_leave(e):
+        button.config(bg=normal_color)
+    button.bind("<Enter>", on_enter)
+    button.bind("<Leave>", on_leave)
+
+def log_message(widget, message: str, tag: str = "info") -> None:
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    formatted = f"[{timestamp}] {message}\n"
+    widget.config(state="normal")
+    widget.insert("end", formatted, tag)
+    widget.config(state="disabled")
+    widget.see("end")
